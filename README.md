@@ -43,6 +43,20 @@ verl is fast with:
 
 </p>
 
+## TW
+
+```bash
+wandb login
+huggingface-cli login
+python examples/data
+python examples/data_preprocess/helpsteer2.py --split rl
+```
+
+```bash
+bash bash/run_llama3-1b.sh
+bash bash/run_llama3-1b_rank.sh
+```
+
 ## News
 
 - [2025/06] verl with Megatron backend enables large MoE models such as [DeepSeek-671b and Qwen3-236b](https://verl.readthedocs.io/en/latest/perf/dpsk.html).
