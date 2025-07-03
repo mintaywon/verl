@@ -8,7 +8,7 @@
 #SBATCH --mem-per-gpu=32G     # GPU당 mem 사용량                                                                                                              
 #SBATCH --time=72:00:00      # 최대 48시간 실행   
 
-cd /home/taywonmin/grpo/verl
+cd $HOME/verl
 
 unset ROCR_VISIBLE_DEVICES
 
@@ -69,10 +69,10 @@ python3 -m verl.trainer.main_ppo \
     trainer.logger=['console','wandb'] \
     trainer.project_name='grpo_reward_hacking' \
     trainer.experiment_name='llama3_1b_grpo' \
-    trainer.default_local_dir='/home/taywonmin/grpo/verl' \
+    trainer.default_local_dir=$HOME/verl/ \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
-    trainer.validation_data_dir='/home/taywonmin/data/' \
+    trainer.validation_data_dir=$HOME/data/helpsteer2/rl \
     trainer.n_gpus_per_node=2 \
     trainer.nnodes=1 \
     trainer.save_freq=100 \

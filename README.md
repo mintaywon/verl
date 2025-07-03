@@ -48,9 +48,10 @@ verl is fast with:
 ```bash
 wandb login
 huggingface-cli login
-python examples/data
 python examples/data_preprocess/helpsteer2.py --split rl
 ```
+
+#### Before Running, check the default_local_dir and validation_data_dir in bash file and match it with your config!!
 
 ```bash
 bash bash/run_llama3-1b.sh

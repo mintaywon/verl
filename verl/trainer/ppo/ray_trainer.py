@@ -1180,7 +1180,7 @@ class RayPPOTrainer:
                     with marked_timer("reward", timing_raw, color="yellow"):
                         # compute reward model score
                         if self.use_rm:
-                            reward_tensor = self.rm_wg.compute_rm_score(batch)
+                            reward_tensor = self.rm_wg.compute_rm_score(batch)                                
                             batch = batch.union(reward_tensor)
 
                         if self.config.reward_model.launch_reward_fn_async:
@@ -1258,7 +1258,58 @@ class RayPPOTrainer:
                         else:
                             batch.batch["token_level_rewards"] = batch.batch["token_level_scores"]
 
-                        # compute advantages, executed on the driver process
+                        if self.config.reward_model.rank:
+                            # token_level_rewards has shape [batchsize, seqlen]
+                            token_level_rewards = batch.batch["token_level_rewards"]
+                            batchsize, seqlen = token_level_rewards.shape
+                            n = self.config.actor_rollout_ref.rollout.n
+                            reward_dtype = token_level_rewards.dtype 
+                            assert batchsize % n == 0, f"Batchsize {batchsize} must be a multiple of n {n}"
+
+                            # locate the single non-zero reward per trajectory
+                            nonzero_mask   = token_level_rewards != 0
+                            reward_indices = nonzero_mask.float().argmax(dim=1)        # [batchsize]
+                            rewards        = token_level_rewards[
+                                                torch.arange(batchsize, device=token_level_rewards.device),
+                                                reward_indices]                         # [batchsize]
+
+                            # --- pure-torch ranking ----------------------------------------------------
+                            ranks = torch.zeros_like(rewards, dtype=reward_dtype)
+
+                            for start in range(0, batchsize, n):
+                                group = rewards[start:start + n]                       # size n
+                                # sort rewards (descending) and remember original positions
+                                sorted_vals, sorted_idx = torch.sort(group, descending=False)
+
+                                # identify ties that are adjacent in the sorted list
+                                unique_vals, counts = torch.unique_consecutive(sorted_vals,
+                                                                            return_counts=True)
+                                cumsum = torch.cumsum(counts, dim=0)                   # 1-based
+                                start_rank = cumsum - counts + 1
+                                end_rank   = cumsum
+                                avg_rank = (start_rank + end_rank).to(reward_dtype) / 2.0
+
+                                # repeat each average rank `counts` times so it lines up with sorted order
+                                expanded_ranks = torch.repeat_interleave(avg_rank, counts)
+                                # scatter back to the original (unsorted) positions
+                                group_ranks = torch.empty_like(expanded_ranks, dtype=reward_dtype)
+                                group_ranks[sorted_idx] = expanded_ranks
+
+                                # store
+                                ranks[start:start + n] = group_ranks
+
+                                if start == 0:  # optional debugging on first mini-batch
+                                    print(f"Before rank conversion (first group, ascending): {group}")
+                                    print(f"After  rank conversion (first group): {group_ranks}")
+                            # ---------------------------------------------------------------------------
+
+                            print(f"Ranks for each group of n={n}: {ranks.view(-1, n)}")
+
+                            # write the rank back into the token-level reward tensor
+                            new_token_level_rewards = torch.zeros_like(token_level_rewards)
+                            row_indices = torch.arange(batchsize, device=token_level_rewards.device)
+                            new_token_level_rewards[row_indices, reward_indices] = ranks
+                            batch.batch["token_level_rewards"] = new_token_level_rewards
 
                         norm_adv_by_std_in_grpo = self.config.algorithm.get(
                             "norm_adv_by_std_in_grpo", True
