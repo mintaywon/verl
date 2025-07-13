@@ -18,6 +18,8 @@ set -x
 python3 -m verl.trainer.main_ppo --config-path=./config --config-name='ppo_trainer'\
     algorithm.adv_estimator=gae \
     algorithm.kl_ctrl.kl_coef=0.01 \
+    data.return_raw_chat=True \
+    data.return_raw_input_ids=True \
     data.train_files=$HOME/data/helpsteer2/rl/train.parquet \
     data.val_files=$HOME/data/helpsteer2/rl/test.parquet \
     data.train_batch_size=128 \
@@ -48,6 +50,7 @@ python3 -m verl.trainer.main_ppo --config-path=./config --config-name='ppo_train
     reward_model.micro_batch_size_per_gpu=2 \
     +reward_model.param_offload=False \
     algorithm.use_kl_in_reward=False \
+    trainer.val_before_train=False \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
     trainer.project_name='ppo_reward_hacking' \

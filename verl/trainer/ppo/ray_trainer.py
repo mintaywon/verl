@@ -1258,7 +1258,7 @@ class RayPPOTrainer:
                         else:
                             batch.batch["token_level_rewards"] = batch.batch["token_level_scores"]
 
-                        if self.config.reward_model.rank:
+                        if hasattr(self.config.reward_model, "rank") and self.config.reward_model.rank:
                             # token_level_rewards has shape [batchsize, seqlen]
                             token_level_rewards = batch.batch["token_level_rewards"]
                             batchsize, seqlen = token_level_rewards.shape

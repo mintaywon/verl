@@ -120,7 +120,7 @@ ENV/
 
 
 # local logs
-logs
+logs/
 log
 outputs
 .history
