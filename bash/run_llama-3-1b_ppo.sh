@@ -38,9 +38,9 @@ python3 -m verl.trainer.main_ppo --config-path=./config --config-name='ppo_train
     actor_rollout_ref.actor.ppo_max_token_len_per_gpu=4096 \
     actor_rollout_ref.actor.use_kl_loss=False \
     actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=2 \
-    actor_rollout_ref.rollout.tensor_model_parallel_size=4 \
+    actor_rollout_ref.rollout.tensor_model_parallel_size=2 \
     actor_rollout_ref.rollout.name=vllm \
-    actor_rollout_ref.rollout.gpu_memory_utilization=0.4 \
+    actor_rollout_ref.rollout.gpu_memory_utilization=0.2 \
     critic.optim.lr=1e-5 \
     critic.model.path=meta-llama/Llama-3.2-1B-Instruct \
     critic.model.enable_gradient_checkpointing=False \
@@ -55,7 +55,7 @@ python3 -m verl.trainer.main_ppo --config-path=./config --config-name='ppo_train
     trainer.logger=['console','wandb'] \
     trainer.project_name='ppo_reward_hacking' \
     trainer.experiment_name='llama_3_1b_ppo' \
-    trainer.n_gpus_per_node=4 \
+    trainer.n_gpus_per_node=2 \
     trainer.nnodes=1 \
     trainer.save_freq=50 \
     trainer.test_freq=10 \

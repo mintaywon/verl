@@ -49,13 +49,20 @@ verl is fast with:
 wandb login
 huggingface-cli login
 python examples/data_preprocess/helpsteer2.py --split rl
+git config --global user.name "Taywon Min"
+git config --global user.email "taywonm@gmail.com"
+
+curl https://rclone.org/install.sh | sudo bash
+rclone config # do the necessary steps
+mkdir logs && cd logs
+rclone copy gdrive:Taywon/verl/Llama-3.2-1B-rm ./Llama-3.2-1B-rm -P
+cd ..
 ```
 
 #### Before Running, check the default_local_dir and validation_data_dir in bash file and match it with your config!!
 
 ```bash
-bash bash/run_llama3-1b.sh
-bash bash/run_llama3-1b_rank.sh
+bash bash/un_llama-3-1b_ppo.sh
 ```
 
 ## News
