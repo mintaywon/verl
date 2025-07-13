@@ -74,6 +74,7 @@ class Role(Enum):
     RefPolicy = 4
     RewardModel = 5
     ActorRolloutRef = 6
+    TrueRewardModel = 7
 
 
 @dataclass
@@ -844,6 +845,11 @@ class RayPPOTrainer:
             resource_pool = self.resource_pool_manager.get_resource_pool(Role.RewardModel)
             rm_cls = RayClassWithInitArgs(self.role_worker_mapping[Role.RewardModel], config=self.config.reward_model)
             self.resource_pool_to_cls[resource_pool]["rm"] = rm_cls
+        
+        if hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model:
+            resource_pool = self.resource_pool_manager.get_resource_pool(Role.TrueRewardModel)
+            true_rm_cls = RayClassWithInitArgs(self.role_worker_mapping[Role.TrueRewardModel], config=self.config.reward_model.true_reward_model)
+            self.resource_pool_to_cls[resource_pool]["true_rm"] = true_rm_cls
 
         # initialize WorkerGroup
         # NOTE: if you want to use a different resource pool for each role, which can support different parallel size,
@@ -885,6 +891,10 @@ class RayPPOTrainer:
         if self.use_rm:
             self.rm_wg = all_wg["rm"]
             self.rm_wg.init_model()
+
+        if hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model:
+            self.true_rm_wg = all_wg["true_rm"]
+            self.true_rm_wg.init_model()
 
         # we should create rollout at the end so that vllm can have a better estimation of kv cache memory
         self.actor_rollout_wg = all_wg["actor_rollout"]
@@ -1183,6 +1193,13 @@ class RayPPOTrainer:
                             reward_tensor = self.rm_wg.compute_rm_score(batch)                                
                             batch = batch.union(reward_tensor)
 
+                        if hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model:
+                            true_reward_tensor = self.true_rm_wg.compute_rm_score(batch)
+                            # change the DataProto key from rm_scores to true_rm_scores
+                            true_reward_tensor.batch["true_rm_scores"] = true_reward_tensor.batch["rm_scores"]
+                            true_reward_tensor.batch.pop("rm_scores")
+                            batch = batch.union(true_reward_tensor)
+
                         if self.config.reward_model.launch_reward_fn_async:
                             future_reward = compute_reward_async.remote(batch, self.config, self.tokenizer)
                         else:
@@ -1244,7 +1261,10 @@ class RayPPOTrainer:
                         reward_extra_infos_dict: dict[str, list]
                         if self.config.reward_model.launch_reward_fn_async:
                             reward_tensor, reward_extra_infos_dict = ray.get(future_reward)
+                        print(f"reward tensor shape: {reward_tensor.shape}")
                         batch.batch["token_level_scores"] = reward_tensor
+                        if hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model:
+                            batch.batch["token_level_true_scores"] = true_reward_tensor.batch["true_rm_scores"]
 
                         if reward_extra_infos_dict:
                             batch.non_tensor_batch.update({k: np.array(v) for k, v in reward_extra_infos_dict.items()})
@@ -1394,7 +1414,7 @@ class RayPPOTrainer:
                     }
                 )
                 # collect metrics
-                metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic))
+                metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic, use_true_rm=hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model))
                 metrics.update(compute_timing_metrics(batch=batch, timing_raw=timing_raw))
                 # TODO: implement actual tflpo and theoretical tflpo
                 n_gpus = self.resource_pool_manager.get_n_gpus()

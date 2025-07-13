@@ -77,7 +77,7 @@ def _compute_response_info(batch: DataProto) -> Dict[str, Any]:
     )
 
 
-def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> Dict[str, Any]:
+def compute_data_metrics(batch: DataProto, use_critic: bool = True, use_true_rm: bool = False) -> Dict[str, Any]:
     """
     Computes various metrics from a batch of data for PPO training.
 
@@ -102,6 +102,8 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> Dict[str,
     """
     sequence_score = batch.batch["token_level_scores"].sum(-1)
     sequence_reward = batch.batch["token_level_rewards"].sum(-1)
+
+    sequence_true_score = batch.batch["token_level_true_scores"].sum(-1)
 
     advantages = batch.batch["advantages"]
     returns = batch.batch["returns"]
@@ -131,6 +133,21 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> Dict[str,
         "critic/score/mean": torch.mean(sequence_score).detach().item(),
         "critic/score/max": torch.max(sequence_score).detach().item(),
         "critic/score/min": torch.min(sequence_score).detach().item(),
+        # true score and reward hacking metrics only if use_true_rm is True
+        **(
+            {
+                # true score
+                "critic/true_score/mean": torch.mean(sequence_true_score).detach().item(),
+                "critic/true_score/max": torch.max(sequence_true_score).detach().item(),
+                "critic/true_score/min": torch.min(sequence_true_score).detach().item(),
+                # reward hacking
+                "critic/reward_hacking/mean": torch.mean(sequence_true_score - sequence_score).detach().item(),
+                "critic/reward_hacking/max": torch.max(sequence_true_score - sequence_score).detach().item(),
+                "critic/reward_hacking/min": torch.min(sequence_true_score - sequence_score).detach().item(),
+            }
+            if use_true_rm
+            else {}
+        ),
         # reward
         "critic/rewards/mean": torch.mean(sequence_reward).detach().item(),
         "critic/rewards/max": torch.max(sequence_reward).detach().item(),

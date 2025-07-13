@@ -48,6 +48,8 @@ verl is fast with:
 ```bash
 wandb login
 huggingface-cli login
+cd verl
+pip3 install --no-deps -e .
 python examples/data_preprocess/helpsteer2.py --split rl
 git config --global user.name "Taywon Min"
 git config --global user.email "taywonm@gmail.com"
@@ -62,7 +64,7 @@ cd ..
 #### Before Running, check the default_local_dir and validation_data_dir in bash file and match it with your config!!
 
 ```bash
-bash bash/un_llama-3-1b_ppo.sh
+bash bash/run_llama-3-1b_ppo.sh
 ```
 
 ## News
