@@ -1375,6 +1375,7 @@ class RewardModelWorker(Worker, DistProfilerExtension):
                 trust_remote_code=trust_remote_code,
             )
 
+        
             apply_monkey_patch(
                 model=reward_module,
                 use_remove_padding=config.model.get("use_remove_padding", False),
@@ -1382,6 +1383,13 @@ class RewardModelWorker(Worker, DistProfilerExtension):
             )
 
             reward_module.to(torch.bfloat16)
+        
+        # Move debug code outside the warnings context
+        print(f"Reward model loaded successfully")
+        if hasattr(reward_module, "score") and hasattr(reward_module.score, "bias") and reward_module.score.bias is not None:
+            # Initialize bias to 0.0 regardless of shape
+            torch.nn.init.constant_(reward_module.score.bias, 0.0)
+
 
         auto_wrap_policy = get_fsdp_wrap_policy(module=reward_module, config=self.config.model.fsdp_config)
 

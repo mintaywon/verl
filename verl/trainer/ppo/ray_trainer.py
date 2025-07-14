@@ -1261,7 +1261,6 @@ class RayPPOTrainer:
                         reward_extra_infos_dict: dict[str, list]
                         if self.config.reward_model.launch_reward_fn_async:
                             reward_tensor, reward_extra_infos_dict = ray.get(future_reward)
-                        print(f"reward tensor shape: {reward_tensor.shape}")
                         batch.batch["token_level_scores"] = reward_tensor
                         if hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model:
                             batch.batch["token_level_true_scores"] = true_reward_tensor.batch["true_rm_scores"]
