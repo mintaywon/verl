@@ -7,8 +7,9 @@
 #SBATCH --cpus-per-gpu=8     # GPU당 CPU 사용 수                                                                                                             
 #SBATCH --mem-per-gpu=32G     # GPU당 mem 사용량                                                                                                              
 #SBATCH --time=72:00:00      # 최대 48시간 실행   
+#SBATCH --exclude=node7
 
-cd $HOME/verl
+cd $HOME/rhbench/verl
 
 unset ROCR_VISIBLE_DEVICES
 
@@ -33,7 +34,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.model.enable_activation_offload=True \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.actor.optim.lr_warmup_steps_ratio=0.01 \
-    actor_rollout_ref.actor.ppo_mini_batch_size=128 \
+    actor_rollout_ref.actor.ppo_mini_batch_size=4 \
     actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
     actor_rollout_ref.actor.use_dynamic_bsz=True \
     actor_rollout_ref.actor.ppo_max_token_len_per_gpu=4096 \
@@ -44,10 +45,10 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     +actor_rollout_ref.actor.fsdp_config.grad_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
-    actor_rollout_ref.rollout.tensor_model_parallel_size=2 \
+    actor_rollout_ref.rollout.tensor_model_parallel_size=4 \
     actor_rollout_ref.rollout.disable_log_stats=False \
     actor_rollout_ref.rollout.name=vllm \
-    actor_rollout_ref.rollout.gpu_memory_utilization=0.4 \
+    actor_rollout_ref.rollout.gpu_memory_utilization=0.3 \
     actor_rollout_ref.rollout.n=8 \
     actor_rollout_ref.rollout.temperature=1.0 \
     actor_rollout_ref.rollout.top_p=1 \
@@ -61,9 +62,9 @@ python3 -m verl.trainer.main_ppo \
     critic.model.enable_gradient_checkpointing=True \
     critic.model.enable_activation_offload=True \
     reward_model.enable=True \
-    reward_model.model.path=Skywork/Skywork-Reward-Llama-3.1-8B-v0.2 \
+    reward_model.model.path=Skywork/Skywork-Reward-V2-Llama-3.1-8B \
     reward_model.model.trust_remote_code=True \
-    reward_model.micro_batch_size_per_gpu=2 \
+    reward_model.micro_batch_size_per_gpu=1 \
     algorithm.use_kl_in_reward=False \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
@@ -73,10 +74,23 @@ python3 -m verl.trainer.main_ppo \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
     trainer.validation_data_dir=$HOME/data/helpsteer2/rl \
-    trainer.n_gpus_per_node=2 \
+    trainer.n_gpus_per_node=4 \
     trainer.nnodes=1 \
-    trainer.save_freq=100 \
+    trainer.save_freq=50 \
     trainer.test_freq=10 \
-    trainer.total_epochs=10
+    trainer.total_epochs=10 \
+    +reward_model.enable_true_reward_model=False \
+    +reward_model.true_reward_model.model.path=Skywork/Skywork-Reward-Llama-3.1-8B-v0.2 \
+    +reward_model.true_reward_model.micro_batch_size_per_gpu=1 \
+    +reward_model.true_reward_model.param_offload=False \
+    +reward_model.true_reward_model.model.fsdp_config.min_num_params=0 \
+    +reward_model.true_reward_model.model.fsdp_config.param_offload=False \
+    +reward_model.true_reward_model.model.fsdp_config.fsdp_size=-1 \
+    +reward_model.true_reward_model.micro_batch_size=1 \
+    +reward_model.true_reward_model.model.input_tokenizer=null \
+    +reward_model.true_reward_model.strategy=fsdp \
+    +reward_model.true_reward_model.model.fsdp_config.forward_prefetch=False \
+    +reward_model.true_reward_model.use_dynamic_bsz=True \
+    +reward_model.true_reward_model.forward_max_token_len_per_gpu=4096
 
 # reward_model.model.input_tokenizer=Skywork/Skywork-Reward-Llama-3.1-8B-v0.2 \
