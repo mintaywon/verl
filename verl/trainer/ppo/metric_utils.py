@@ -102,8 +102,9 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True, use_true_rm:
     """
     sequence_score = batch.batch["token_level_scores"].sum(-1)
     sequence_reward = batch.batch["token_level_rewards"].sum(-1)
-
-    sequence_true_score = batch.batch["token_level_true_scores"].sum(-1)
+    
+    if use_true_rm:
+        sequence_true_score = batch.batch["token_level_true_scores"].sum(-1)
 
     advantages = batch.batch["advantages"]
     returns = batch.batch["returns"]

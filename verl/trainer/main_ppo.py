@@ -171,7 +171,7 @@ class TaskRunner:
             role_worker_mapping[Role.RewardModel] = ray.remote(RewardModelWorker)
             mapping[Role.RewardModel] = global_pool_id
 
-        if config.reward_model.enable_true_reward_model:
+        if hasattr(config.reward_model, "enable_true_reward_model") and config.reward_model.enable_true_reward_model:
             role_worker_mapping[Role.TrueRewardModel] = ray.remote(RewardModelWorker)
             mapping[Role.TrueRewardModel] = global_pool_id
 
