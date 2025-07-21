@@ -28,7 +28,7 @@ python3 -m verl.trainer.main_ppo \
     data.max_response_length=2048 \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
-    actor_rollout_ref.model.path=meta-llama/Llama-3.2-3B-Instruct \
+    actor_rollout_ref.model.path=meta-llama/Llama-3.2-1B-Instruct \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.model.enable_activation_offload=True \
@@ -69,7 +69,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
     trainer.project_name='grpo_reward_hacking' \
-    trainer.experiment_name='llama3_3b_grpo_hh' \
+    trainer.experiment_name='llama3_1b_grpo_hh' \
     trainer.default_local_dir=$HOME/verl/ \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
