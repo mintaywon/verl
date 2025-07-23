@@ -70,6 +70,7 @@ python3 -m verl.trainer.main_ppo \
     reward_model.model.path=Skywork/Skywork-Reward-V2-Llama-3.1-8B \
     reward_model.model.trust_remote_code=True \
     reward_model.micro_batch_size_per_gpu=1 \
+    reward_model.length_penalty_factor=0.01 \
     algorithm.use_kl_in_reward=False \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \

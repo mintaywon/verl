@@ -50,7 +50,7 @@ wandb login
 huggingface-cli login
 cd verl
 pip3 install --no-deps -e .
-python examples/data_preprocess/helpsteer2.py --split rl
+python examples/data_preprocess/helpfulness_hh_rlhf.py --split rl
 git config --global user.name "Taywon Min"
 git config --global user.email "taywonm@gmail.com"
 ```
