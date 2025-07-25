@@ -1194,24 +1194,18 @@ class RayPPOTrainer:
                             batch = batch.union(reward_tensor)
                             
                             if hasattr(self.config.reward_model, "length_penalty_factor"):
-                                print(f"batch.batch.keys(): {batch.batch.keys()}")
                                 response_mask = batch.batch["response_mask"]
                                 response_mask_sum = response_mask.sum(dim=1)
-
-                                attention_mask = batch.batch["attention_mask"]
-                                # Get the final (last non-padding) position for each sequence in the batch
-                                # (Assume attention_mask is 1 for tokens, 0 for padding)
-                                final_positions = attention_mask.sum(dim=1) - 1  # (batch_size,)
-                                # print the reward values at the final positions
-                                print(f"batch.batch['rm_scores']: {batch.batch['rm_scores']}")
-                                print(f"final_positions: {final_positions}")
-                                print(f"batch.batch['rm_scores'][torch.arange(batch.batch['rm_scores'].shape[0]), final_positions]: {batch.batch['rm_scores'][torch.arange(batch.batch['rm_scores'].shape[0]), final_positions]}")
                                 
-                                # apply length penalty
+                                # Apply length penalty efficiently without memory leaks
                                 length_penalty = self.config.reward_model.length_penalty_factor * response_mask_sum
-                                # Apply the length penalty only at the final_positions for each sequence (in-place)
-                                batch_indices = torch.arange(batch.batch["rm_scores"].shape[0])
-                                batch.batch["rm_scores"][batch_indices, final_positions] -= length_penalty
+                                final_positions = response_mask_sum - 1
+                                
+                                # Use advanced indexing directly without creating intermediate tensors
+                                batch.batch["rm_scores"][torch.arange(final_positions.shape[0], device=final_positions.device), final_positions] -= length_penalty
+
+                                del response_mask_sum, length_penalty, final_positions
+                                torch.cuda.empty_cache()  # Force GPU memory cleanup
 
                         if hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model:
                             true_reward_tensor = self.true_rm_wg.compute_rm_score(batch)

@@ -9,7 +9,7 @@
 #SBATCH --time=72:00:00      # 최대 48시간 실행   
 #SBATCH --exclude=node7
 
-cd $HOME/rhbench/verl
+cd $HOME/verl
 
 unset ROCR_VISIBLE_DEVICES
 export HYDRA_FULL_ERROR=1
@@ -70,13 +70,13 @@ python3 -m verl.trainer.main_ppo \
     reward_model.model.path=Skywork/Skywork-Reward-V2-Llama-3.1-8B \
     reward_model.model.trust_remote_code=True \
     reward_model.micro_batch_size_per_gpu=1 \
-    reward_model.length_penalty_factor=0.01 \
+    +reward_model.length_penalty_factor=0.01 \
     algorithm.use_kl_in_reward=False \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
     trainer.project_name='grpo_reward_hacking' \
-    trainer.experiment_name='llama3_1b_grpo_hh' \
-    trainer.default_local_dir=$HOME/rhbench/verl/logs \
+    trainer.experiment_name='llama3_1b_grpo_hh_lp' \
+    trainer.default_local_dir=$HOME/verl/logs \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
     trainer.validation_data_dir=$HOME/data/helpfulness_hh_rlhf/rl \
