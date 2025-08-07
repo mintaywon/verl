@@ -1427,7 +1427,7 @@ class RayPPOTrainer:
                     }
                 )
                 # collect metrics
-                metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic, use_true_rm=hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model))
+                metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic, use_true_rm=hasattr(self.config.reward_model, "enable_true_reward_model") and self.config.reward_model.enable_true_reward_model, lp=0 if not hasattr(self.config.reward_model, "length_penalty_factor") else self.config.reward_model.length_penalty_factor))
                 metrics.update(compute_timing_metrics(batch=batch, timing_raw=timing_raw))
                 # TODO: implement actual tflpo and theoretical tflpo
                 n_gpus = self.resource_pool_manager.get_n_gpus()

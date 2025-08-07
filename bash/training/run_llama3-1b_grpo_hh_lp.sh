@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-gpu=8     # GPU당 CPU 사용 수                                                                                                             
 #SBATCH --mem-per-gpu=32G     # GPU당 mem 사용량                                                                                                              
 #SBATCH --time=72:00:00      # 최대 48시간 실행   
-#SBATCH --exclude=node7
+#SBATCH --exclude=node7,node5
 
 cd $HOME/verl
 
@@ -76,7 +76,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.logger=['console','wandb'] \
     trainer.project_name='grpo_reward_hacking' \
     trainer.experiment_name='llama3_1b_grpo_hh_lp' \
-    trainer.default_local_dir=$HOME/verl/logs \
+    trainer.default_local_dir=$HOME/rhbench/verl/logs \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
     trainer.validation_data_dir=$HOME/data/helpfulness_hh_rlhf/rl \

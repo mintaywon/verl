@@ -77,7 +77,7 @@ def _compute_response_info(batch: DataProto) -> Dict[str, Any]:
     )
 
 
-def compute_data_metrics(batch: DataProto, use_critic: bool = True, use_true_rm: bool = False) -> Dict[str, Any]:
+def compute_data_metrics(batch: DataProto, use_critic: bool = True, use_true_rm: bool = False, lp: float = 0.0) -> Dict[str, Any]:
     """
     Computes various metrics from a batch of data for PPO training.
 
@@ -153,6 +153,10 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True, use_true_rm:
         "critic/rewards/mean": torch.mean(sequence_reward).detach().item(),
         "critic/rewards/max": torch.max(sequence_reward).detach().item(),
         "critic/rewards/min": torch.min(sequence_reward).detach().item(),
+        # reward - lp * response_length
+        "critic/rewards_lp/mean": torch.mean(sequence_reward + lp * response_length).detach().item(),
+        "critic/rewards_lp/max": torch.max(sequence_reward + lp * response_length).detach().item(),
+        "critic/rewards_lp/min": torch.min(sequence_reward + lp * response_length).detach().item(),
         # adv
         "critic/advantages/mean": torch.mean(valid_adv).detach().item(),
         "critic/advantages/max": torch.max(valid_adv).detach().item(),
