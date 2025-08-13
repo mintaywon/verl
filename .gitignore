@@ -120,7 +120,9 @@ ENV/
 
 
 # local logs
-logs/
-log
-outputs
-.history
+verl/logs/
+verl/log
+verl/outputs
+verl/.history
+models/
+evals/results/
