@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-gpu=8     # GPU당 CPU 사용 수                                                                                                             
 #SBATCH --mem-per-gpu=32G     # GPU당 mem 사용량                                                                                                              
 #SBATCH --time=72:00:00      # 최대 48시간 실행   
-#SBATCH --exclude=node4,node10
+#SBATCH --exclude=node5,node7
 
 cd $HOME/rhbench/verl
 
@@ -76,7 +76,7 @@ $HOME/miniconda3/envs/verl/bin/python3 -m verl.trainer.main_ppo \
     trainer.logger=['console','wandb'] \
     trainer.project_name='grpo_reward_hacking' \
     trainer.experiment_name='llama3_1b_grpo_hh_lp_p0.005' \
-    trainer.default_local_dir=$HOME/rhbench/verl/logs/llama-3.2-1b_lp_p0.005 \
+    trainer.default_local_dir=$HOME/rhbench/verl/logs/llama-3.2-1b_grpo_lp_p0.005 \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
     trainer.validation_data_dir=$HOME/data/helpfulness_hh_rlhf/rl \
@@ -84,6 +84,7 @@ $HOME/miniconda3/envs/verl/bin/python3 -m verl.trainer.main_ppo \
     trainer.nnodes=1 \
     trainer.save_freq=50 \
     trainer.test_freq=10 \
-    trainer.total_epochs=2
+    trainer.total_epochs=2 \
+    trainer.ray_wait_register_center_timeout=600
 
 # reward_model.model.input_tokenizer=Skywork/Skywork-Reward-Llama-3.1-8B-v0.2 \

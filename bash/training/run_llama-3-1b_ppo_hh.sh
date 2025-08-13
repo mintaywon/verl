@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-gpu=8     # GPU당 CPU 사용 수                                                                                                             
 #SBATCH --mem-per-gpu=32G     # GPU당 mem 사용량                                                                                                              
 #SBATCH --time=72:00:00      # 최대 48시간 실행   
-
+#SBATCH --exclude=node10
 
 cd $HOME/rhbench/verl
 
@@ -62,7 +62,7 @@ $HOME/miniconda3/envs/verl/bin/python3 -m verl.trainer.main_ppo --config-path=./
     trainer.logger=['console','wandb'] \
     trainer.project_name='ppo_reward_hacking' \
     trainer.experiment_name='llama3_1b_ppo_hh' \
-    trainer.default_local_dir=$HOME/rhbench/verl/logs \
+    trainer.default_local_dir=$HOME/rhbench/verl/logs/llama-3.2-1b_ppo \
     trainer.val_before_train=False \
     trainer.log_val_generations=10 \
     trainer.validation_data_dir=$HOME/data/helpfulness_hh_rlhf/rl \
